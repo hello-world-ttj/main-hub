@@ -1,0 +1,27 @@
+{
+  "name": "main-hub",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hello-world-ttj/main-hub.git"
+  },
+  "author": "hello-world-ttj",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hello-world-ttj/main-hub/issues"
+  },
+  "homepage": "https://github.com/hello-world-ttj/main-hub#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "mongoose": "^8.3.5",
+    "nodemon": "^3.1.0",
+    "ws": "^8.17.0"
+  }
+}
