@@ -70,8 +70,8 @@ wss.on('connection', (ws, req) => {
   console.log('Client connected to primary WebSocket server');
 
   // Extract identifier from URL path (e.g., '/GOEC001')
-  const url = new URL(req.url, `http://${req.headers.host}`);
-  const identifier = url.pathname.substring(1); // This gets the part after the slash
+  const parts = req.url.split('/');
+  const identifier = parts[1];
   console.log(`Client connected with identifier: ${identifier}`);
 
   // Store the client's identifier for message filtering
