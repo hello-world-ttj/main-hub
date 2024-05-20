@@ -70,8 +70,8 @@ wss.on('connection', (ws, req) => {
   console.log('Client connected to primary WebSocket server');
 
   // Extract identifier from URL path (e.g., '/GOEC001')
-  const parts = req.url.split('/');
-  const identifier = parts[1];
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  const identifier = url.pathname.substring(1); // This gets the part after the slash
   console.log(`Client connected with identifier: ${identifier}`);
 
   // Store the client's identifier for message filtering
@@ -111,6 +111,6 @@ app.get('/', (req, res) => {
 
 // Start the HTTP server
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, '13.201.56.220', () => {
+server.listen(PORT, () => {
   console.log(`Primary WebSocket Server started on port ${PORT}`);
 });
