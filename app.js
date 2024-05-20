@@ -1,7 +1,7 @@
 const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
-const cors = require("cors");
+const cors = require('cors');
 const app = express();
 app.use(cors());
 const server = http.createServer(app);
@@ -43,7 +43,7 @@ function broadcastMessage(identifier, message) {
   clients.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
       try {
-        const jsonData = JSON.parse(message); 
+        const jsonData = JSON.parse(message);
         client.send(JSON.stringify(jsonData));
       } catch (error) {
         console.error(`Error sending message to client (${client.identifier}):`, error.message);
