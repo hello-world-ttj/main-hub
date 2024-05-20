@@ -72,6 +72,7 @@ wss.on('connection', (ws, req) => {
   // Extract identifier from URL path (e.g., '/GOEC001')
   const parts = req.url.split('/');
   const identifier = parts[1];
+  console.log(`Client connected with identifier: ${identifier}`);
 
   // Store the client's identifier for message filtering
   ws.identifier = identifier;
@@ -95,7 +96,11 @@ wss.on('connection', (ws, req) => {
 
   // Handle client disconnection
   ws.on('close', () => {
-    console.log('Client disconnected from primary WebSocket server');
+    console.log(`Client disconnected from primary WebSocket server with identifier: ${ws.identifier}`);
+  });
+
+  ws.on('error', (error) => {
+    console.error(`WebSocket error with client identifier ${ws.identifier}:`, error.message);
   });
 });
 
