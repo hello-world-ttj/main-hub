@@ -66,8 +66,9 @@ externalWebSocketConfigs.forEach((config) => {
 
 // Start the primary WebSocket server
 const wss = new WebSocket.Server({ server });
-
 wss.on("connection", (ws, req) => {
+  console.log("🚀 ~ wss.on ~ req:", req)
+  console.log("🚀 ~ wss.on ~ req-url:", req.url);
   console.log("Client connected to primary WebSocket server");
 
   // Extract identifier from the end of the URL path (e.g., '/GOEC001')
