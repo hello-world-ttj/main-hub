@@ -12,37 +12,31 @@ const server = http.createServer(app);
 const websocketServers = new Map();
 
 // Function to establish connections to external WebSocket servers dynamically
-async function connectExternalWebSocket(configs) {
-  const connections = configs.map(config => {
-    return new Promise((resolve, reject) => {
-      const externalWebSocket = new WebSocket(config.url);
+function connectExternalWebSocket(identifier, url) {
+  const externalWebSocket = new WebSocket(url);
 
-      externalWebSocket.on("open", () => {
-        console.log(`Connected to external WebSocket server with identifier: ${config.identifier}`);
-        websocketServers.set(config.identifier, externalWebSocket); // Store WebSocket server with its identifier
-        resolve();
-      });
-
-      externalWebSocket.on("close", () => {
-        console.log(`Disconnected from external WebSocket server with identifier: ${config.identifier}`);
-        websocketServers.delete(config.identifier); // Remove WebSocket server from map on close
-      });
-
-      externalWebSocket.on("error", (error) => {
-        console.error(`WebSocket error with identifier ${config.identifier}:`, error.message);
-        reject(error);
-      });
-
-      externalWebSocket.on("message", (message) => {
-        console.log(`Received from external WebSocket server (${config.identifier}): ${message}`);
-
-        // Broadcast the received message to clients connected with the corresponding identifier
-        broadcastMessage(config.identifier, message);
-      });
-    });
+  externalWebSocket.on("open", () => {
+    console.log(`Connected to external WebSocket server with identifier: ${identifier}`);
+    websocketServers.set(identifier, externalWebSocket); // Store WebSocket server with its identifier
   });
 
-  await Promise.all(connections);
+  externalWebSocket.on("close", () => {
+    console.log(`Disconnected from external WebSocket server with identifier: ${identifier}`);
+    websocketServers.delete(identifier); // Remove WebSocket server from map on close
+  });
+
+  externalWebSocket.on("error", (error) => {
+    console.error(`WebSocket error with identifier ${identifier}:`, error.message);
+  });
+
+  externalWebSocket.on("message", (message) => {
+    console.log(`Received from external WebSocket server (${identifier}): ${message}`);
+
+    // Broadcast the received message to clients connected with the corresponding identifier
+    broadcastMessage(identifier, message);
+  });
+
+  return externalWebSocket;
 }
 
 // Function to broadcast message to clients based on identifier
@@ -111,22 +105,24 @@ app.get("/", (req, res) => {
 
 // Start the HTTP server
 const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`Primary WebSocket Server started on port ${PORT}`);
+});
 
 // Define WebSocket server configurations
 const externalWebSocketConfigs = [
-  { identifier: "TESTPOWER", url: "ws://goeccms.numocity.com:9033/ocpp/TESTPOWER" },
   { identifier: "GOEC001", url: "wss://oxium.goecworld.com:5500/GOEC001" },
+  { identifier: "TESTPOWER", url: "ws://goeccms.numocity.com:9033/ocpp/TESTPOWER" },
   { identifier: "P1001", url: "ws://evconnect.telioev.com:80/P1001" },
 ];
 
-// Start the HTTP server and establish WebSocket connections
-server.listen(PORT, () => {
-  console.log(`Primary WebSocket Server started on port ${PORT}`);
-  connectExternalWebSocket(externalWebSocketConfigs)
-    .then(() => {
-      console.log("All external WebSocket connections established successfully.");
-    })
-    .catch((error) => {
-      console.error("Error establishing WebSocket connections:", error);
-    });
+// Establish connections to external WebSocket servers dynamically
+externalWebSocketConfigs.forEach((config) => {
+  const { identifier, url } = config;
+  const externalWebSocket = connectExternalWebSocket(identifier, url);
+  
+  // Log errors for each WebSocket connection
+  externalWebSocket.on("error", (error) => {
+    console.error(`Error with external WebSocket (${identifier}):`, error.message);
+  });
 });
