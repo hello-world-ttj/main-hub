@@ -14,7 +14,7 @@ const websocketServers = new Map();
 // Function to establish connections to external WebSocket servers dynamically
 function connectExternalWebSocket(identifier, url) {
   const externalWebSocket = new WebSocket(url);
-  console.log("🚀 ~ connectExternalWebSocket ~ externalWebSocket:", externalWebSocket)
+  console.log("🚀 ~ connectExternalWebSocket ~ externalWebSocket:", externalWebSocket);
 
   externalWebSocket.on("open", () => {
     console.log(`Connected to external WebSocket server with identifier: ${identifier}`);
@@ -66,6 +66,7 @@ wss.on("connection", (ws, req) => {
 
   // Store the client's identifier for message filtering
   ws.identifier = identifier;
+  console.log("🚀 ~ wss.on ~ identifier:", ws.identifier);
 
   // Handle incoming messages from clients
   ws.on("message", (message) => {
@@ -73,10 +74,10 @@ wss.on("connection", (ws, req) => {
 
     // Forward the message to the corresponding external WebSocket server
     const externalWebSocket = websocketServers.get(ws.identifier);
-    console.log("🚀 ~ ws.on ~ websocketServers:", websocketServers)
-    console.log("🚀 ~ ws.on ~ WebSocket.OPEN:", WebSocket.OPEN)
+    console.log("🚀 ~ ws.on ~ websocketServers:", websocketServers);
+    console.log("🚀 ~ ws.on ~ WebSocket.OPEN:", WebSocket.OPEN);
     if (externalWebSocket && externalWebSocket.readyState === WebSocket.OPEN) {
-      console.log("🚀 ~ ws.on ~ externalWebSocket.readyState:", externalWebSocket.readyState)
+      console.log("🚀 ~ ws.on ~ externalWebSocket.readyState:", externalWebSocket.readyState);
       externalWebSocket.send(message, (error) => {
         if (error) {
           console.error(
@@ -118,13 +119,14 @@ const externalWebSocketConfigs = [
   { identifier: "GOEC001", url: "wss://oxium.goecworld.com:5500/GOEC001" },
   { identifier: "TESTPOWER", url: "ws://goeccms.numocity.com:9033/ocpp/TESTPOWER" },
   { identifier: "P1001", url: "ws://evconnect.telioev.com:80/P1001" },
+  { identifier: "TESTPOWERONE", url: "ws://goeccms.numocity.com:9033/ocpp/TESTPOWERONE" },
 ];
 
 // Establish connections to external WebSocket servers dynamically
 externalWebSocketConfigs.forEach((config) => {
   const { identifier, url } = config;
   const externalWebSocket = connectExternalWebSocket(identifier, url);
-  
+
   // Log errors for each WebSocket connection
   externalWebSocket.on("error", (error) => {
     console.error(`Error with external WebSocket (${identifier}):`, error.message);
