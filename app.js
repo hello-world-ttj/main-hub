@@ -1,7 +1,7 @@
-const express = require('express');
-const http = require('http');
-const WebSocket = require('ws');
-const cors = require('cors');
+const express = require("express");
+const http = require("http");
+const WebSocket = require("ws");
+const cors = require("cors");
 const app = express();
 app.use(cors());
 const server = http.createServer(app);
@@ -13,21 +13,21 @@ const websocketServers = new Map();
 function connectExternalWebSocket(identifier, url) {
   const externalWebSocket = new WebSocket(url);
 
-  externalWebSocket.on('open', () => {
+  externalWebSocket.on("open", () => {
     console.log(`Connected to external WebSocket server with identifier: ${identifier}`);
     websocketServers.set(identifier, externalWebSocket); // Store WebSocket server with its identifier
   });
 
-  externalWebSocket.on('close', () => {
+  externalWebSocket.on("close", () => {
     console.log(`Disconnected from external WebSocket server with identifier: ${identifier}`);
     websocketServers.delete(identifier); // Remove WebSocket server from map on close
   });
 
-  externalWebSocket.on('error', (error) => {
+  externalWebSocket.on("error", (error) => {
     console.error(`WebSocket error with identifier ${identifier}:`, error.message);
   });
 
-  externalWebSocket.on('message', (message) => {
+  externalWebSocket.on("message", (message) => {
     console.log(`Received from external WebSocket server (${identifier}): ${message}`);
 
     // Broadcast the received message to clients connected with the corresponding identifier
@@ -54,8 +54,9 @@ function broadcastMessage(identifier, message) {
 
 // Establish connections to external WebSocket servers dynamically
 const externalWebSocketConfigs = [
-  { identifier: 'GOEC001', url: 'wss://oxium.goecworld.com:5500/GOEC001' },
-  { identifier: 'GOEC222', url: 'wss://oxium.goecworld.com:5500/GOEC222' }
+  { identifier: "GOEC001", url: "wss://oxium.goecworld.com:5500/GOEC001" },
+  { identifier: "TESTPOWER", url: "ws://goeccms.numocity.com:9033/ocpp/TESTPOWER" },
+  { identifier: "P1001", url: "ws://evconnect.telioev.com:80/P1001" },
 ];
 
 externalWebSocketConfigs.forEach((config) => {
@@ -66,18 +67,18 @@ externalWebSocketConfigs.forEach((config) => {
 // Start the primary WebSocket server
 const wss = new WebSocket.Server({ server });
 
-wss.on('connection', (ws, req) => {
-  console.log('Client connected to primary WebSocket server');
+wss.on("connection", (ws, req) => {
+  console.log("Client connected to primary WebSocket server");
 
   // Extract identifier from the end of the URL path (e.g., '/GOEC001')
-  const identifier = req.url.split('/').pop();
+  const identifier = req.url.split("/").pop();
   console.log(`Client connected with identifier: ${identifier}`);
 
   // Store the client's identifier for message filtering
   ws.identifier = identifier;
 
   // Handle incoming messages from clients
-  ws.on('message', (message) => {
+  ws.on("message", (message) => {
     console.log(`Received from client with identifier ${ws.identifier}: ${message}`);
 
     // Forward the message to the corresponding external WebSocket server
@@ -85,7 +86,10 @@ wss.on('connection', (ws, req) => {
     if (externalWebSocket && externalWebSocket.readyState === WebSocket.OPEN) {
       externalWebSocket.send(message, (error) => {
         if (error) {
-          console.error(`Error sending message to external WebSocket (${ws.identifier}):`, error.message);
+          console.error(
+            `Error sending message to external WebSocket (${ws.identifier}):`,
+            error.message
+          );
         }
       });
     } else {
@@ -94,18 +98,20 @@ wss.on('connection', (ws, req) => {
   });
 
   // Handle client disconnection
-  ws.on('close', () => {
-    console.log(`Client disconnected from primary WebSocket server with identifier: ${ws.identifier}`);
+  ws.on("close", () => {
+    console.log(
+      `Client disconnected from primary WebSocket server with identifier: ${ws.identifier}`
+    );
   });
 
-  ws.on('error', (error) => {
+  ws.on("error", (error) => {
     console.error(`WebSocket error with client identifier ${ws.identifier}:`, error.message);
   });
 });
 
 // Serve your Express app
-app.get('/', (req, res) => {
-  res.send('WebSocket Server is Running');
+app.get("/", (req, res) => {
+  res.send("WebSocket Server is Running");
 });
 
 // Start the HTTP server
