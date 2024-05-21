@@ -74,6 +74,7 @@ wss.on("connection", (ws, req) => {
     // Forward the message to the corresponding external WebSocket server
     const externalWebSocket = websocketServers.get(ws.identifier);
     console.log("🚀 ~ ws.on ~ websocketServers:", websocketServers)
+    console.log("🚀 ~ ws.on ~ WebSocket.OPEN:", WebSocket.OPEN)
     if (externalWebSocket && externalWebSocket.readyState === WebSocket.OPEN) {
       console.log("🚀 ~ ws.on ~ externalWebSocket.readyState:", externalWebSocket.readyState)
       externalWebSocket.send(message, (error) => {
