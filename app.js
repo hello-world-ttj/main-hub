@@ -14,6 +14,7 @@ const websocketServers = new Map();
 // Function to establish connections to external WebSocket servers dynamically
 function connectExternalWebSocket(identifier, url) {
   const externalWebSocket = new WebSocket(url);
+  console.log("🚀 ~ connectExternalWebSocket ~ externalWebSocket:", externalWebSocket)
 
   externalWebSocket.on("open", () => {
     console.log(`Connected to external WebSocket server with identifier: ${identifier}`);
@@ -72,7 +73,9 @@ wss.on("connection", (ws, req) => {
 
     // Forward the message to the corresponding external WebSocket server
     const externalWebSocket = websocketServers.get(ws.identifier);
+    console.log("🚀 ~ ws.on ~ websocketServers:", websocketServers)
     if (externalWebSocket && externalWebSocket.readyState === WebSocket.OPEN) {
+      console.log("🚀 ~ ws.on ~ externalWebSocket.readyState:", externalWebSocket.readyState)
       externalWebSocket.send(message, (error) => {
         if (error) {
           console.error(
