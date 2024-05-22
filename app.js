@@ -6,7 +6,8 @@ const cors = require("cors");
 const app = express();
 app.use(cors());
 
-const server = http.createServer(app);
+// Create HTTP server for Express app
+const httpServer = http.createServer(app);
 
 // Map to store WebSocket servers and their corresponding identifiers
 const websocketServers = new Map();
@@ -54,8 +55,9 @@ function broadcastMessage(identifier, message) {
   });
 }
 
-// Start the primary WebSocket server
-const wss = new WebSocket.Server({ server });
+// Start the primary WebSocket server on a different port
+const websocketPort = process.env.WEBSOCKET_PORT || 8080;
+const wss = new WebSocket.Server({ port: websocketPort });
 wss.on("connection", (ws, req) => {
   console.log("Client connected to primary WebSocket server");
 
@@ -100,13 +102,13 @@ wss.on("connection", (ws, req) => {
 
 // Serve your Express app
 app.get("/", (req, res) => {
-  res.send("WebSocket Server is Running");
+  res.send("HTTP Server is Running");
 });
 
-// Start the HTTP server
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`Primary WebSocket Server started on port ${PORT}`);
+// Start the HTTP server on a different port
+const httpPort = process.env.HTTP_PORT || 3000;
+httpServer.listen(httpPort, () => {
+  console.log(`HTTP Server started on port ${httpPort}`);
 });
 
 // Define WebSocket server configurations
@@ -128,3 +130,5 @@ externalWebSocketConfigs.forEach((config) => {
     console.error(`Error with external WebSocket (${identifier}):`, error.message);
   });
 });
+
+console.log(`WebSocket Server started on port ${websocketPort}`);
