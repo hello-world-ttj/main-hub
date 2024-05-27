@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon app.js"
+    "start": "nodemon server.js"
   },
   "repository": {
     "type": "git",
@@ -19,8 +19,9 @@
   "homepage": "https://github.com/hello-world-ttj/main-hub#readme",
   "dependencies": {
     "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "mongoose": "^8.3.5",
+    "mongoose": "^8.4.0",
     "nodemon": "^3.1.0",
     "ws": "^8.17.0"
   }
