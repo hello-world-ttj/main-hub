@@ -9,7 +9,7 @@ app.use(cors());
 // Create HTTP server for Express app
 const httpServer = http.createServer(app);
 
-// Map to store WebSocket servers and their corresponding identifiers
+// Map to store arrays of WebSocket servers corresponding to their identifiers
 const websocketServers = new Map();
 
 // Function to establish connections to external WebSocket servers dynamically
@@ -17,21 +17,40 @@ function connectExternalWebSocket(identifier, url) {
   const externalWebSocket = new WebSocket(url);
 
   externalWebSocket.on("open", () => {
-    console.log(`Connected to external WebSocket server with identifier: ${identifier}`);
-    websocketServers.set(identifier, externalWebSocket); // Store WebSocket server with its identifier
+    console.log(
+      `Connected to external WebSocket server with identifier: ${identifier}`
+    );
+    if (!websocketServers.has(identifier)) {
+      websocketServers.set(identifier, []);
+    }
+    websocketServers.get(identifier).push(externalWebSocket); // Store WebSocket server with its identifier
   });
 
   externalWebSocket.on("close", () => {
-    console.log(`Disconnected from external WebSocket server with identifier: ${identifier}`);
-    websocketServers.delete(identifier); // Remove WebSocket server from map on close
+    console.log(
+      `Disconnected from external WebSocket server with identifier: ${identifier}`
+    );
+    if (websocketServers.has(identifier)) {
+      websocketServers.set(
+        identifier,
+        websocketServers
+          .get(identifier)
+          .filter((ws) => ws !== externalWebSocket)
+      );
+    }
   });
 
   externalWebSocket.on("error", (error) => {
-    console.error(`WebSocket error with identifier ${identifier}:`, error.message);
+    console.error(
+      `WebSocket error with identifier ${identifier}:`,
+      error.message
+    );
   });
 
   externalWebSocket.on("message", (message) => {
-    console.log(`Received from external WebSocket server (${identifier}): ${message}`);
+    console.log(
+      `Received from external WebSocket server (${identifier}): ${message}`
+    );
 
     // Broadcast the received message to clients connected with the corresponding identifier
     broadcastMessage(identifier, message);
@@ -42,14 +61,19 @@ function connectExternalWebSocket(identifier, url) {
 
 // Function to broadcast message to clients based on identifier
 function broadcastMessage(identifier, message) {
-  const clients = Array.from(wss.clients).filter((client) => client.identifier === identifier);
+  const clients = Array.from(wss.clients).filter(
+    (client) => client.identifier === identifier
+  );
   clients.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
       try {
         const jsonData = JSON.parse(message);
         client.send(JSON.stringify(jsonData));
       } catch (error) {
-        console.error(`Error sending message to client (${client.identifier}):`, error.message);
+        console.error(
+          `Error sending message to client (${client.identifier}):`,
+          error.message
+        );
       }
     }
   });
@@ -70,22 +94,24 @@ wss.on("connection", (ws, req) => {
 
   // Handle incoming messages from clients
   ws.on("message", (message) => {
-    console.log(`Received from client with identifier ${ws.identifier}: ${message}`);
+    console.log(
+      `Received from client with identifier ${ws.identifier}: ${message}`
+    );
 
-    // Forward the message to the corresponding external WebSocket server
-    const externalWebSocket = websocketServers.get(ws.identifier);
-    if (externalWebSocket && externalWebSocket.readyState === WebSocket.OPEN) {
-      externalWebSocket.send(message, (error) => {
-        if (error) {
-          console.error(
-            `Error sending message to external WebSocket (${ws.identifier}):`,
-            error.message
-          );
-        }
-      });
-    } else {
-      console.error(`No external WebSocket found for identifier: ${ws.identifier}`);
-    }
+    // Forward the message to the corresponding external WebSocket servers
+    const externalWebSockets = websocketServers.get(ws.identifier) || [];
+    externalWebSockets.forEach((externalWebSocket) => {
+      if (externalWebSocket.readyState === WebSocket.OPEN) {
+        externalWebSocket.send(message, (error) => {
+          if (error) {
+            console.error(
+              `Error sending message to external WebSocket (${ws.identifier}):`,
+              error.message
+            );
+          }
+        });
+      }
+    });
   });
 
   // Handle client disconnection
@@ -96,7 +122,10 @@ wss.on("connection", (ws, req) => {
   });
 
   ws.on("error", (error) => {
-    console.error(`WebSocket error with client identifier ${ws.identifier}:`, error.message);
+    console.error(
+      `WebSocket error with client identifier ${ws.identifier}:`,
+      error.message
+    );
   });
 });
 
@@ -113,11 +142,11 @@ httpServer.listen(httpPort, () => {
 
 // Define WebSocket server configurations
 const externalWebSocketConfigs = [
-  { identifier: "GOEC001", url: "wss://oxium.goecworld.com:5500/GOEC001" },
-  { identifier: "TESTPOWER", url: "ws://goeccms.numocity.com:9033/ocpp/TESTPOWER" },
-  { identifier: "P1001", url: "ws://evconnect.telioev.com:80/P1001" },
-  { identifier: "TESTPOWERONE", url: "ws://goeccms.numocity.com:9033/ocpp/TESTPOWERONE" },
-  { identifier: "EXP", url: "ws://example.com:8000/EXP" },
+  { identifier: "TESTPOWERONE", url: "ws://65.0.248.79:5500/TESTPOWERONE" },
+  {
+    identifier: "TESTPOWERONE",
+    url: "ws://goeccms.numocity.com:9033/ocpp/TESTPOWERONE",
+  },
 ];
 
 // Establish connections to external WebSocket servers dynamically
@@ -127,7 +156,10 @@ externalWebSocketConfigs.forEach((config) => {
 
   // Log errors for each WebSocket connection
   externalWebSocket.on("error", (error) => {
-    console.error(`Error with external WebSocket (${identifier}):`, error.message);
+    console.error(
+      `Error with external WebSocket (${identifier}):`,
+      error.message
+    );
   });
 });
 
