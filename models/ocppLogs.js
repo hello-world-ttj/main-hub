@@ -17,7 +17,6 @@ const ocppLogsSchema = mongoose.Schema(
     },
     payload: {
       type: Object,
-      required: true,
     },
   },
   { timestamps: true }

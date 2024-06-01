@@ -46,11 +46,11 @@ exports.saveOCPPLogs = async (identity, messageType, payload, source) => {
     const log = {
       source,
       CPID: identity,
-      messageType: messageType,
+      messageType: messageType.toString(),
       payload,
     };
     await ocppLogs.create(log);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.log("🚀 ~ exports.saveOCPPLogs= ~ error:", error)
   }
 };

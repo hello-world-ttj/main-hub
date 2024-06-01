@@ -2,42 +2,30 @@ const http = require("http");
 const WebSocket = require("ws");
 const app = require("./app");
 const connectDB = require("./db");
-const {
-  connectExternalWebSocket,
-  initializeWebSocketConfigs,
-} = require("./services/websocketService");
+const { handleClientMessage } = require("./services/websocketService");
 connectDB();
 
 const httpServer = http.createServer(app);
-const websocketServers = new Map();
-
 const websocketPort = process.env.WEBSOCKET_PORT || 8080;
 const wss = new WebSocket.Server({ port: websocketPort });
-global.wss = wss; // Make wss globally accessible for broadcasting
+
+global.wss = wss;
+
 wss.on("connection", (ws, req) => {
+  console.log("Client connected to primary WebSocket server");
+
   const identifier = req.url.split("/").pop();
+  console.log(`Client connected with identifier: ${identifier}`);
   ws.identifier = identifier;
 
   ws.on("message", (message) => {
-    const externalWebSocket = websocketServers.get(ws.identifier);
-    if (externalWebSocket && externalWebSocket.readyState === WebSocket.OPEN) {
-      externalWebSocket.send(message, (error) => {
-        if (error) {
-          console.error(
-            `Error sending message to external WebSocket (${ws.identifier}):`,
-            error.message
-          );
-        }
-      });
-    } else {
-      console.error(
-        `No external WebSocket found for identifier: ${ws.identifier}`
-      );
-    }
+    handleClientMessage(ws, message);
   });
 
   ws.on("close", () => {
-    console.log(`Client disconnected with identifier: ${ws.identifier}`);
+    console.log(
+      `Client disconnected from primary WebSocket server with identifier: ${ws.identifier}`
+    );
   });
 
   ws.on("error", (error) => {
@@ -48,15 +36,10 @@ wss.on("connection", (ws, req) => {
   });
 });
 
-app.get("/", (req, res) => {
-  res.send("HTTP Server is Running");
-});
 
 const httpPort = process.env.HTTP_PORT || 3000;
 httpServer.listen(httpPort, () => {
   console.log(`HTTP Server started on port ${httpPort}`);
 });
-
-initializeWebSocketConfigs(websocketServers, connectExternalWebSocket);
 
 console.log(`WebSocket Server started on port ${websocketPort}`);

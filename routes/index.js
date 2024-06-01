@@ -1,7 +1,7 @@
 const express = require("express");
 const {
   getWebSocketConfigs,
-  addWebSocketConfigs,
+  createWebSocketConfig,
 } = require("../controllers/websocketController");
 const {
   addChargePoint,
@@ -11,7 +11,7 @@ const {
 
 const router = express.Router();
 
-router.route("/configs").get(getWebSocketConfigs).post(addWebSocketConfigs);
+router.route("/configs").get(getWebSocketConfigs).post(createWebSocketConfig);
 router.route("/charge-point").post(addChargePoint).get(getAllCps);
 router.get("/charge-point/:id", getChargePoint);
 module.exports = router;
