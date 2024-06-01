@@ -1,4 +1,5 @@
 const chargePoint = require("../models/chargePoint");
+const ocppLogs = require("../models/ocppLogs");
 
 exports.addChargePoint = async (req, res) => {
   try {
@@ -35,6 +36,20 @@ exports.getChargePoint = async (req, res) => {
     }
     const cp = await chargePoint.findById(id);
     res.status(200).json(cp);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.saveOCPPLogs = async (identity, messageType, payload, source) => {
+  try {
+    const log = {
+      source,
+      CPID: identity,
+      messageType: messageType,
+      payload,
+    };
+    await ocppLogs.create(log);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
