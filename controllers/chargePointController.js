@@ -3,9 +3,7 @@ const ocppLogs = require("../models/ocppLogs");
 
 exports.addChargePoint = async (req, res) => {
   try {
-    const getCount = await chargePoint.countDocuments();
-    const CPID = "OXIUM0" + (getCount + 1);
-    req.body.CPID = CPID;
+    const { CPID } = req.body;
     const configURL = `ws://13.201.56.220/ws:8080/${CPID}`;
     req.body.configURL = configURL;
     const newCP = await chargePoint.create(req.body);
@@ -30,11 +28,11 @@ exports.getAllCps = async (req, res) => {
 
 exports.getChargePoint = async (req, res) => {
   try {
-    const { id } = req.params;
-    if (!id) {
-      res.status(400).json({ error: "ID not provided" });
+    const { CPID } = req.params;
+    if (!CPID) {
+      res.status(400).json({ error: "CPID not provided" });
     }
-    const cp = await chargePoint.findById(id);
+    const cp = await chargePoint.findOne({CPID});
     res.status(200).json(cp);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -51,6 +49,20 @@ exports.saveOCPPLogs = async (identity, messageType, payload, source) => {
     };
     await ocppLogs.create(log);
   } catch (error) {
-    console.log("🚀 ~ exports.saveOCPPLogs= ~ error:", error)
+    console.log("🚀 ~ exports.saveOCPPLogs= ~ error:", error);
+  }
+};
+
+exports.getOcppLogs = async (req, res) => {
+  try {
+    const { CPID } = req.query;
+    const filter = {};
+    if (CPID) {
+      filter.CPID = CPID;
+    }
+    const logs = await ocppLogs.find(filter);
+    res.status(200).json(logs);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };

@@ -21,11 +21,9 @@ const cpSchema = mongoose.Schema(
     type: {
       type: String,
       required: true,
-      enum: ["AC", "DC"],
     },
     serialNumber: {
       type: String,
-      required: true,
     },
     ocppVersion: {
       type: String,
