@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const WebSocketConfigSchema = mongoose.Schema(
+const wsConfigSchema = mongoose.Schema(
   {
     identifier: { type: String, required: true },
     url: { type: String, required: true },
@@ -8,4 +8,4 @@ const WebSocketConfigSchema = mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("webSocketConfig", WebSocketConfigSchema);
+module.exports = mongoose.model("wsConfig", wsConfigSchema);

@@ -1,6 +1,6 @@
 const WebSocket = require("ws");
-const WebSocketConfig = require("../models/webSocketConfig");
 const { saveOCPPLogs } = require("../controllers/chargePointController");
+const wsConfig = require("../models/wsConfig");
 
 const websocketServers = new Map();
 let mysockets = [];
@@ -161,7 +161,7 @@ const handleError = (error) => {
 
 const initializeWebSocketConfigs = async () => {
   try {
-    const configs = await WebSocketConfig.find();
+    const configs = await wsConfig.find();
     configs.forEach((config) => {
       const { identifier, url } = config;
       connectExternalWebSocket(identifier, url);

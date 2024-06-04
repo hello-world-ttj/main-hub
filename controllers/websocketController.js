@@ -1,9 +1,9 @@
-const websocketConfig = require("../models/webSocketConfig");
+const wsConfig = require("../models/wsConfig");
 const { connectExternalWebSocket } = require("../services/websocketService");
 
 exports.getWebSocketConfigs = async (req, res) => {
   try {
-    const configs = await websocketConfig.find();
+    const configs = await wsConfig.find();
     res.status(200).json(configs);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -13,7 +13,7 @@ exports.getWebSocketConfigs = async (req, res) => {
 exports.createWebSocketConfig = async (req, res) => {
   try {
     const { identifier, url } = req.body;
-    const newConfig = await websocketConfig.create(req.body);
+    const newConfig = await wsConfig.create(req.body);
     await newConfig.save();
 
     connectExternalWebSocket(identifier, url);
