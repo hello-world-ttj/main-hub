@@ -1,4 +1,4 @@
-const websocketConfig = require("../models/WebSocketConfig");
+const websocketConfig = require("../models/webSocketConfig");
 const { connectExternalWebSocket } = require("../services/websocketService");
 
 exports.getWebSocketConfigs = async (req, res) => {

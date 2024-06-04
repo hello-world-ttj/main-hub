@@ -8,4 +8,4 @@ const WebSocketConfigSchema = mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("WebSocketConfig", WebSocketConfigSchema);
+module.exports = mongoose.model("webSocketConfig", WebSocketConfigSchema);

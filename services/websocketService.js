@@ -1,5 +1,5 @@
 const WebSocket = require("ws");
-const WebSocketConfig = require("../models/WebSocketConfig");
+const WebSocketConfig = require("../models/webSocketConfig");
 const { saveOCPPLogs } = require("../controllers/chargePointController");
 
 const websocketServers = new Map();
