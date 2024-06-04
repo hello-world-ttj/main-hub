@@ -10,56 +10,60 @@ const connectExternalWebSocket = (identifier, url) => {
 
   externalWebSocket.on("open", () => {
     console.log(
-      `Connected to external WebSocket server with identifier: ${identifier}`
+      `Connected to external WebSocket server with identifier: ${identifier} and URL: ${url}`
     );
     if (!websocketServers.has(identifier)) {
       websocketServers.set(identifier, []);
     }
-    websocketServers.get(identifier).push(externalWebSocket);
+    websocketServers.get(identifier).push({ url, socket: externalWebSocket });
   });
 
   externalWebSocket.on("close", () => {
     console.log(
-      `Disconnected from external WebSocket server with identifier: ${identifier}`
+      `Disconnected from external WebSocket server with identifier: ${identifier} and URL: ${url}`
     );
     if (websocketServers.has(identifier)) {
       websocketServers.set(
         identifier,
         websocketServers
           .get(identifier)
-          .filter((ws) => ws !== externalWebSocket)
+          .filter((ws) => ws.socket !== externalWebSocket)
       );
     }
   });
 
   externalWebSocket.on("error", (error) => {
     console.error(
-      `WebSocket error with identifier ${identifier}:`,
+      `WebSocket error with identifier ${identifier} and URL ${url}:`,
       error.message
     );
   });
 
   externalWebSocket.on("message", (message) => {
-    handleExternalMessage(identifier, message);
+    handleExternalMessage(identifier, url, message);
   });
 
   return externalWebSocket;
 };
 
-const handleExternalMessage = async (identifier, message) => {
+const handleExternalMessage = async (identifier, url, message) => {
   const messageParts = JSON.parse(message);
   await saveOCPPLogs(identifier, messageParts[2], messageParts[3], "CMS");
+
   if (messageParts[2] === "RemoteStartTransaction") {
     mysockets.push({
       details: messageParts[3],
+      identifier: identifier,
+      url: url,
       socket: websocketServers
         .get(identifier)
-        .find((ws) => ws.readyState === WebSocket.OPEN),
+        .find((ws) => ws.url === url && ws.socket.readyState === WebSocket.OPEN)
+        .socket,
     });
   }
 
   console.log(
-    `Received from external WebSocket server (${identifier}): ${message}`
+    `Received from external WebSocket server (${identifier}, ${url}): ${message}`
   );
   broadcastMessage(identifier, message);
 };
@@ -110,7 +114,8 @@ const handleStartTransaction = (messageContent) => {
   const activeSocketObj = mysockets.find(
     (socketObj) =>
       socketObj.details.connectorId === transactionDetails.connectorId &&
-      socketObj.details.idTag === transactionDetails.idTag
+      socketObj.details.idTag === transactionDetails.idTag &&
+      socketObj.identifier === transactionDetails.identifier // Ensure matching identifier
   );
 
   if (activeSocketObj) {
@@ -121,7 +126,9 @@ const handleStartTransaction = (messageContent) => {
 const handleMeterValues = (messageContent) => {
   const meterValue = messageContent[3];
   const activeSocketObj = mysockets.find(
-    (socketObj) => socketObj.details.connectorId === meterValue.connectorId
+    (socketObj) =>
+      socketObj.details.connectorId === meterValue.connectorId &&
+      socketObj.identifier === meterValue.identifier // Ensure matching identifier
   );
 
   if (activeSocketObj) {
@@ -147,9 +154,9 @@ const handleStopTransaction = (messageContent) => {
 const forwardMessageToExternal = (identifier, message) => {
   console.log(`Received from client with identifier ${identifier}: ${message}`);
   const externalWebSockets = websocketServers.get(identifier) || [];
-  externalWebSockets.forEach((externalWebSocket) => {
-    if (externalWebSocket.readyState === WebSocket.OPEN) {
-      externalWebSocket.send(message, handleError);
+  externalWebSockets.forEach(({ socket }) => {
+    if (socket.readyState === WebSocket.OPEN) {
+      socket.send(message, handleError);
     }
   });
 };
