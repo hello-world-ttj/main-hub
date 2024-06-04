@@ -46,13 +46,15 @@ const connectExternalWebSocket = (identifier, url) => {
   return externalWebSocket;
 };
 
-const handleExternalMessage = async(identifier, message) => {
+const handleExternalMessage = async (identifier, message) => {
   const messageParts = JSON.parse(message);
   await saveOCPPLogs(identifier, messageParts[2], messageParts[3], "CMS");
   if (messageParts[2] === "RemoteStartTransaction") {
     mysockets.push({
       details: messageParts[3],
-      socket: websocketServers.get(identifier),
+      socket: websocketServers
+        .get(identifier)
+        .find((ws) => ws.readyState === WebSocket.OPEN),
     });
   }
 
@@ -81,7 +83,7 @@ const broadcastMessage = (identifier, message) => {
   });
 };
 
-const handleClientMessage = async(ws, message) => {
+const handleClientMessage = async (ws, message) => {
   const messageContent = JSON.parse(message);
   const messageType = messageContent[2];
 
@@ -112,15 +114,7 @@ const handleStartTransaction = (messageContent) => {
   );
 
   if (activeSocketObj) {
-    // Type checking before sending message
-    if (
-      typeof activeSocketObj.socket === "object" &&
-      activeSocketObj.socket instanceof WebSocket
-    ) {
-      activeSocketObj.socket.send(JSON.stringify(messageContent), handleError);
-    } else {
-      console.error("Error: activeSocketObj.socket is not a WebSocket");
-    }
+    activeSocketObj.socket.send(JSON.stringify(messageContent), handleError);
   }
 };
 
@@ -131,15 +125,8 @@ const handleMeterValues = (messageContent) => {
   );
 
   if (activeSocketObj) {
-    // Type checking before sending message
-    if (
-      typeof activeSocketObj.socket === "object" &&
-      activeSocketObj.socket instanceof WebSocket
-    ) {
-      activeSocketObj.socket.send(JSON.stringify(messageContent), handleError);
-    } else {
-      console.error("Error: activeSocketObj.socket is not a WebSocket");
-    }
+    activeSocketObj.transactionId = meterValue.transactionId;
+    activeSocketObj.socket.send(JSON.stringify(messageContent), handleError);
   }
 };
 
@@ -150,15 +137,10 @@ const handleStopTransaction = (messageContent) => {
   );
 
   if (activeSocketObj) {
-    // Type checking before sending message
-    if (
-      typeof activeSocketObj.socket === "object" &&
-      activeSocketObj.socket instanceof WebSocket
-    ) {
-      activeSocketObj.socket.send(JSON.stringify(messageContent), handleError);
-    } else {
-      console.error("Error: activeSocketObj.socket is not a WebSocket");
-    }
+    activeSocketObj.socket.send(JSON.stringify(messageContent), handleError);
+    mysockets = mysockets.filter(
+      (socketObj) => socketObj.transactionId !== transactionId
+    );
   }
 };
 
@@ -167,8 +149,7 @@ const forwardMessageToExternal = (identifier, message) => {
   const externalWebSockets = websocketServers.get(identifier) || [];
   externalWebSockets.forEach((externalWebSocket) => {
     if (externalWebSocket.readyState === WebSocket.OPEN) {
-      const jsonData = JSON.parse(message);
-      externalWebSocket.send(JSON.stringify(jsonData), handleError);
+      externalWebSocket.send(message, handleError);
     }
   });
 };
