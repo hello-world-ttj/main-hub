@@ -112,7 +112,15 @@ const handleStartTransaction = (messageContent) => {
   );
 
   if (activeSocketObj) {
-    activeSocketObj.socket.send(JSON.stringify(messageContent), handleError);
+    // Type checking before sending message
+    if (
+      typeof activeSocketObj.socket === "object" &&
+      activeSocketObj.socket instanceof WebSocket
+    ) {
+      activeSocketObj.socket.send(JSON.stringify(messageContent), handleError);
+    } else {
+      console.error("Error: activeSocketObj.socket is not a WebSocket");
+    }
   }
 };
 
@@ -123,8 +131,15 @@ const handleMeterValues = (messageContent) => {
   );
 
   if (activeSocketObj) {
-    activeSocketObj.transactionId = meterValue.transactionId;
-    activeSocketObj.socket.send(JSON.stringify(messageContent), handleError);
+    // Type checking before sending message
+    if (
+      typeof activeSocketObj.socket === "object" &&
+      activeSocketObj.socket instanceof WebSocket
+    ) {
+      activeSocketObj.socket.send(JSON.stringify(messageContent), handleError);
+    } else {
+      console.error("Error: activeSocketObj.socket is not a WebSocket");
+    }
   }
 };
 
@@ -135,10 +150,15 @@ const handleStopTransaction = (messageContent) => {
   );
 
   if (activeSocketObj) {
-    activeSocketObj.socket.send(JSON.stringify(messageContent), handleError);
-    mysockets = mysockets.filter(
-      (socketObj) => socketObj.transactionId !== transactionId
-    );
+    // Type checking before sending message
+    if (
+      typeof activeSocketObj.socket === "object" &&
+      activeSocketObj.socket instanceof WebSocket
+    ) {
+      activeSocketObj.socket.send(JSON.stringify(messageContent), handleError);
+    } else {
+      console.error("Error: activeSocketObj.socket is not a WebSocket");
+    }
   }
 };
 
