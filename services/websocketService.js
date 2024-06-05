@@ -60,6 +60,8 @@ const handleExternalMessage = async (identifier, url, message) => {
         .find((ws) => ws.url === url && ws.socket.readyState === WebSocket.OPEN)
         .socket,
     });
+  } else if (messageParts[2] === "StopTransaction") {
+    handleStopTransaction(messageParts, identifier);
   }
 
   console.log(
