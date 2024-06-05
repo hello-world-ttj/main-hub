@@ -9,9 +9,7 @@ const connectExternalWebSocket = (identifier, url) => {
   const externalWebSocket = new WebSocket(url);
 
   externalWebSocket.on("open", () => {
-    console.log(
-      `Connected to external WebSocket server with identifier: ${identifier} and URL: ${url}`
-    );
+    console.log(`Connected to external WebSocket server with identifier: ${identifier} and URL: ${url}`);
     if (!websocketServers.has(identifier)) {
       websocketServers.set(identifier, []);
     }
@@ -19,24 +17,17 @@ const connectExternalWebSocket = (identifier, url) => {
   });
 
   externalWebSocket.on("close", () => {
-    console.log(
-      `Disconnected from external WebSocket server with identifier: ${identifier} and URL: ${url}`
-    );
+    console.log(`Disconnected from external WebSocket server with identifier: ${identifier} and URL: ${url}`);
     if (websocketServers.has(identifier)) {
       websocketServers.set(
         identifier,
-        websocketServers
-          .get(identifier)
-          .filter((ws) => ws.socket !== externalWebSocket)
+        websocketServers.get(identifier).filter((ws) => ws.socket !== externalWebSocket)
       );
     }
   });
 
   externalWebSocket.on("error", (error) => {
-    console.error(
-      `WebSocket error with identifier ${identifier} and URL ${url}:`,
-      error.message
-    );
+    console.error(`WebSocket error with identifier ${identifier} and URL ${url}:`, error.message);
   });
 
   externalWebSocket.on("message", (message) => {
@@ -62,9 +53,7 @@ const handleExternalMessage = async (identifier, url, message) => {
     });
   }
 
-  console.log(
-    `Received from external WebSocket server (${identifier}, ${url}): ${message}`
-  );
+  console.log(`Received from external WebSocket server (${identifier}, ${url}): ${message}`);
   broadcastMessage(identifier, message);
 };
 
@@ -78,10 +67,7 @@ const broadcastMessage = (identifier, message) => {
         const jsonData = JSON.parse(message);
         client.send(JSON.stringify(jsonData));
       } catch (error) {
-        console.error(
-          `Error sending message to client (${client.identifier}):`,
-          error.message
-        );
+        console.error(`Error sending message to client (${client.identifier}):`, error.message);
       }
     }
   });
@@ -93,15 +79,16 @@ const handleClientMessage = async (ws, message) => {
 
   await saveOCPPLogs(ws.identifier, messageType, messageContent[3], "CP");
 
+  console.log("🚀 ~ handleClientMessage ~ messageType:", messageType)
   switch (messageType) {
     case "StartTransaction":
-      handleStartTransaction(messageContent);
+      handleStartTransaction(messageContent, ws.identifier);
       break;
     case "MeterValues":
-      handleMeterValues(messageContent);
+      handleMeterValues(messageContent, ws.identifier);
       break;
     case "StopTransaction":
-      handleStopTransaction(messageContent);
+      handleStopTransaction(messageContent, ws.identifier);
       break;
     default:
       forwardMessageToExternal(ws.identifier, message);
@@ -109,13 +96,13 @@ const handleClientMessage = async (ws, message) => {
   }
 };
 
-const handleStartTransaction = (messageContent) => {
+const handleStartTransaction = (messageContent, identifier) => {
   const transactionDetails = messageContent[3];
   const activeSocketObj = mysockets.find(
     (socketObj) =>
       socketObj.details.connectorId === transactionDetails.connectorId &&
       socketObj.details.idTag === transactionDetails.idTag &&
-      socketObj.identifier === transactionDetails.identifier // Ensure matching identifier
+      socketObj.identifier === identifier
   );
 
   if (activeSocketObj) {
@@ -123,12 +110,12 @@ const handleStartTransaction = (messageContent) => {
   }
 };
 
-const handleMeterValues = (messageContent) => {
+const handleMeterValues = (messageContent, identifier) => {
   const meterValue = messageContent[3];
   const activeSocketObj = mysockets.find(
     (socketObj) =>
       socketObj.details.connectorId === meterValue.connectorId &&
-      socketObj.identifier === meterValue.identifier // Ensure matching identifier
+      socketObj.identifier === identifier
   );
 
   if (activeSocketObj) {
@@ -137,7 +124,7 @@ const handleMeterValues = (messageContent) => {
   }
 };
 
-const handleStopTransaction = (messageContent) => {
+const handleStopTransaction = (messageContent, identifier) => {
   const transactionId = messageContent[3].transactionId;
   const activeSocketObj = mysockets.find(
     (socketObj) => socketObj.transactionId === transactionId
