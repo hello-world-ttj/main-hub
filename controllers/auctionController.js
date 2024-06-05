@@ -2,8 +2,9 @@ const auctionModel = require('../models/auction')
 const cpModel = require("../models/cp")
 
 const getAuctionList = async (req, res) => {
+    console.log("hello")
     try {
-        const auctionList = await auctionModel.find()
+        const auctionList = await auctionModel.find({})
         res.status(200).json(auctionList)
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -14,8 +15,18 @@ const getAuctionList = async (req, res) => {
 const getAuctionListBySellerId = async ( req, res ) => {
     const {sellerId} = req.params;
     try{
-        const auctionList = await auctionModel.find({sellerName:sellerId})
+        const auctionList = await auctionModel.find({sellerId:sellerId})
         res.status(200).json(auctionList)
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}
+
+const getAuctionById = async (req, res) => {
+    const {auctionId} = req.params
+    try {
+        const acutionItem = await auctionModel.findOne({auctionCode: auctionId});
+        res.status(200).json(acutionItem)
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -60,4 +71,4 @@ const rejectBid = async (req,res) => {
 
 
 
-module.exports = {acceptBid, getAuctionListBySellerId, getAuctionList , rejectBid}
+module.exports = {acceptBid, getAuctionListBySellerId, getAuctionList , rejectBid, getAuctionById}
