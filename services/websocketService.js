@@ -52,7 +52,7 @@ const handleExternalMessage = async (identifier, url, message) => {
 
   if (messageParts[2] === "RemoteStartTransaction") {
     mysockets.push({
-      details: messageParts[3],
+      transactionId: messageParts[3].transactionId,
       identifier: identifier,
       url: url,
       socket: websocketServers
@@ -60,14 +60,39 @@ const handleExternalMessage = async (identifier, url, message) => {
         .find((ws) => ws.url === url && ws.socket.readyState === WebSocket.OPEN)
         .socket,
     });
-  } else if (messageParts[2] === "StopTransaction") {
-    handleStopTransaction(messageParts, identifier);
+  } else if (messageParts[2] === "RemoteStopTransaction") {
+    handleRemoteStopTransaction(messageParts, identifier);
   }
 
   console.log(
     `Received from external WebSocket server (${identifier}, ${url}): ${message}`
   );
   broadcastMessage(identifier, message);
+};
+
+const handleRemoteStopTransaction = (messageParts, identifier) => {
+  const transactionId = messageParts[3].transactionId;
+  const activeSocketObj = mysockets.find(
+    (socketObj) =>
+      socketObj.transactionId === transactionId &&
+      socketObj.identifier === identifier
+  );
+
+  console.log(
+    "🚀 ~ handleRemoteStopTransaction ~ transactionId:",
+    transactionId
+  );
+  console.log(
+    "🚀 ~ handleRemoteStopTransaction ~ activeSocketObj:",
+    activeSocketObj
+  );
+
+  if (activeSocketObj) {
+    activeSocketObj.socket.send(JSON.stringify(messageParts), handleError);
+    mysockets = mysockets.filter(
+      (socketObj) => socketObj.transactionId !== transactionId
+    );
+  }
 };
 
 const broadcastMessage = (identifier, message) => {
