@@ -9,7 +9,9 @@ const connectExternalWebSocket = (identifier, url) => {
   const externalWebSocket = new WebSocket(url);
 
   externalWebSocket.on("open", () => {
-    console.log(`Connected to external WebSocket server with identifier: ${identifier} and URL: ${url}`);
+    console.log(
+      `Connected to external WebSocket server with identifier: ${identifier} and URL: ${url}`
+    );
     if (!websocketServers.has(identifier)) {
       websocketServers.set(identifier, []);
     }
@@ -17,17 +19,24 @@ const connectExternalWebSocket = (identifier, url) => {
   });
 
   externalWebSocket.on("close", () => {
-    console.log(`Disconnected from external WebSocket server with identifier: ${identifier} and URL: ${url}`);
+    console.log(
+      `Disconnected from external WebSocket server with identifier: ${identifier} and URL: ${url}`
+    );
     if (websocketServers.has(identifier)) {
       websocketServers.set(
         identifier,
-        websocketServers.get(identifier).filter((ws) => ws.socket !== externalWebSocket)
+        websocketServers
+          .get(identifier)
+          .filter((ws) => ws.socket !== externalWebSocket)
       );
     }
   });
 
   externalWebSocket.on("error", (error) => {
-    console.error(`WebSocket error with identifier ${identifier} and URL ${url}:`, error.message);
+    console.error(
+      `WebSocket error with identifier ${identifier} and URL ${url}:`,
+      error.message
+    );
   });
 
   externalWebSocket.on("message", (message) => {
@@ -53,7 +62,9 @@ const handleExternalMessage = async (identifier, url, message) => {
     });
   }
 
-  console.log(`Received from external WebSocket server (${identifier}, ${url}): ${message}`);
+  console.log(
+    `Received from external WebSocket server (${identifier}, ${url}): ${message}`
+  );
   broadcastMessage(identifier, message);
 };
 
@@ -67,7 +78,10 @@ const broadcastMessage = (identifier, message) => {
         const jsonData = JSON.parse(message);
         client.send(JSON.stringify(jsonData));
       } catch (error) {
-        console.error(`Error sending message to client (${client.identifier}):`, error.message);
+        console.error(
+          `Error sending message to client (${client.identifier}):`,
+          error.message
+        );
       }
     }
   });
@@ -79,7 +93,7 @@ const handleClientMessage = async (ws, message) => {
 
   await saveOCPPLogs(ws.identifier, messageType, messageContent[3], "CP");
 
-  console.log("🚀 ~ handleClientMessage ~ messageType:", messageType)
+  console.log("🚀 ~ handleClientMessage ~ messageType:", messageType);
   switch (messageType) {
     case "StartTransaction":
       handleStartTransaction(messageContent, ws.identifier);
@@ -104,6 +118,10 @@ const handleStartTransaction = (messageContent, identifier) => {
       socketObj.details.idTag === transactionDetails.idTag &&
       socketObj.identifier === identifier
   );
+  console.log(
+    "🚀 ~ handleStartTransaction ~ activeSocketObj:",
+    activeSocketObj
+  );
 
   if (activeSocketObj) {
     activeSocketObj.socket.send(JSON.stringify(messageContent), handleError);
@@ -127,7 +145,9 @@ const handleMeterValues = (messageContent, identifier) => {
 const handleStopTransaction = (messageContent, identifier) => {
   const transactionId = messageContent[3].transactionId;
   const activeSocketObj = mysockets.find(
-    (socketObj) => socketObj.transactionId === transactionId
+    (socketObj) =>
+      socketObj.transactionId === transactionId &&
+      socketObj.identifier === identifier
   );
 
   if (activeSocketObj) {
