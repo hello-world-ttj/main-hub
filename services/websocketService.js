@@ -123,7 +123,7 @@ const handleStartTransaction = (messageContent, identifier) => {
   );
 
   if (activeSocketObj) {
-    activeSocketObj.socket.send(JSON.stringify(messageContent), handleError);
+    activeSocketObj.socket[0].send(JSON.stringify(messageContent), handleError);
   }
 };
 
@@ -138,7 +138,7 @@ const handleMeterValues = (messageContent, identifier) => {
 
   if (activeSocketObj) {
     activeSocketObj.transactionId = meterValue.transactionId;
-    activeSocketObj.socket.send(JSON.stringify(messageContent), handleError);
+    activeSocketObj.socket[0].send(JSON.stringify(messageContent), handleError);
   }
 };
 
@@ -152,7 +152,7 @@ const handleStopTransaction = (messageContent, identifier) => {
   console.log("🚀 ~ handleStopTransaction ~ activeSocketObj:", activeSocketObj);
 
   if (activeSocketObj) {
-    activeSocketObj.socket.send(JSON.stringify(messageContent), handleError);
+    activeSocketObj.socket[0].send(JSON.stringify(messageContent), handleError);
     mysockets = mysockets.filter(
       (socketObj) => socketObj.transactionId !== transactionId
     );
