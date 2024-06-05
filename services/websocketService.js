@@ -52,7 +52,7 @@ const handleExternalMessage = async (identifier, url, message) => {
 
   if (messageParts[2] === "RemoteStartTransaction") {
     mysockets.push({
-      transactionId: messageParts[3].transactionId,
+      details: messageParts[3],
       identifier: identifier,
       url: url,
       socket: websocketServers
