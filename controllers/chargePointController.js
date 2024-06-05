@@ -32,7 +32,7 @@ exports.getChargePoint = async (req, res) => {
     if (!CPID) {
       res.status(400).json({ error: "CPID not provided" });
     }
-    const cp = await chargePoint.findOne({CPID});
+    const cp = await chargePoint.findOne({ CPID });
     res.status(200).json(cp);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -60,7 +60,7 @@ exports.getOcppLogs = async (req, res) => {
     if (CPID) {
       filter.CPID = CPID;
     }
-    const logs = await ocppLogs.find(filter);
+    const logs = await ocppLogs.find(filter).sort({ createdAt: -1 });
     res.status(200).json(logs);
   } catch (error) {
     res.status(500).json({ error: error.message });
