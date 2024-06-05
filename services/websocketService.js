@@ -53,7 +53,12 @@ const handleExternalMessage = async (identifier, url, message) => {
   if (messageParts[2] === "RemoteStartTransaction") {
     mysockets.push({
       details: messageParts[3],
-      socket: websocketServers,
+      identifier: identifier,
+      url: url,
+      socket: websocketServers
+        .get(identifier)
+        .find((ws) => ws.url === url && ws.socket.readyState === WebSocket.OPEN)
+        .socket,
     });
   }
 
@@ -110,7 +115,8 @@ const handleStartTransaction = (messageContent, identifier) => {
   const activeSocketObj = mysockets.find(
     (socketObj) =>
       socketObj.details.connectorId === transactionDetails.connectorId &&
-      socketObj.details.idTag === transactionDetails.idTag
+      socketObj.details.idTag === transactionDetails.idTag &&
+      socketObj.identifier === identifier
   );
 
   console.log(
@@ -123,14 +129,16 @@ const handleStartTransaction = (messageContent, identifier) => {
   );
 
   if (activeSocketObj) {
-    activeSocketObj.socket[0].send(JSON.stringify(messageContent), handleError);
+    activeSocketObj.socket.send(JSON.stringify(messageContent), handleError);
   }
 };
 
 const handleMeterValues = (messageContent, identifier) => {
   const meterValue = messageContent[3];
   const activeSocketObj = mysockets.find(
-    (socketObj) => socketObj.details.connectorId === meterValue.connectorId
+    (socketObj) =>
+      socketObj.details.connectorId === meterValue.connectorId &&
+      socketObj.identifier === identifier
   );
 
   console.log("🚀 ~ handleMeterValues ~ meterValue:", meterValue);
@@ -138,21 +146,23 @@ const handleMeterValues = (messageContent, identifier) => {
 
   if (activeSocketObj) {
     activeSocketObj.transactionId = meterValue.transactionId;
-    activeSocketObj.socket[0].send(JSON.stringify(messageContent), handleError);
+    activeSocketObj.socket.send(JSON.stringify(messageContent), handleError);
   }
 };
 
 const handleStopTransaction = (messageContent, identifier) => {
   const transactionId = messageContent[3].transactionId;
   const activeSocketObj = mysockets.find(
-    (socketObj) => socketObj.transactionId === transactionId
+    (socketObj) =>
+      socketObj.transactionId === transactionId &&
+      socketObj.identifier === identifier
   );
 
   console.log("🚀 ~ handleStopTransaction ~ transactionId:", transactionId);
   console.log("🚀 ~ handleStopTransaction ~ activeSocketObj:", activeSocketObj);
 
   if (activeSocketObj) {
-    activeSocketObj.socket[0].send(JSON.stringify(messageContent), handleError);
+    activeSocketObj.socket.send(JSON.stringify(messageContent), handleError);
     mysockets = mysockets.filter(
       (socketObj) => socketObj.transactionId !== transactionId
     );
