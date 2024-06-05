@@ -53,12 +53,7 @@ const handleExternalMessage = async (identifier, url, message) => {
   if (messageParts[2] === "RemoteStartTransaction") {
     mysockets.push({
       details: messageParts[3],
-      identifier: identifier,
-      url: url,
-      socket: websocketServers
-        .get(identifier)
-        .find((ws) => ws.url === url && ws.socket.readyState === WebSocket.OPEN)
-        .socket,
+      socket: websocketServers,
     });
   }
 
@@ -115,9 +110,7 @@ const handleStartTransaction = (messageContent, identifier) => {
   const activeSocketObj = mysockets.find(
     (socketObj) =>
       socketObj.details.connectorId === transactionDetails.connectorId &&
-      socketObj.details.idTag === transactionDetails.idTag &&
-      socketObj.identifier === identifier &&
-      socketObj.url === transactionDetails.url
+      socketObj.details.idTag === transactionDetails.idTag
   );
 
   console.log(
@@ -137,10 +130,7 @@ const handleStartTransaction = (messageContent, identifier) => {
 const handleMeterValues = (messageContent, identifier) => {
   const meterValue = messageContent[3];
   const activeSocketObj = mysockets.find(
-    (socketObj) =>
-      socketObj.details.connectorId === meterValue.connectorId &&
-      socketObj.identifier === identifier &&
-      socketObj.url === meterValue.url
+    (socketObj) => socketObj.details.connectorId === meterValue.connectorId
   );
 
   console.log("🚀 ~ handleMeterValues ~ meterValue:", meterValue);
@@ -155,10 +145,7 @@ const handleMeterValues = (messageContent, identifier) => {
 const handleStopTransaction = (messageContent, identifier) => {
   const transactionId = messageContent[3].transactionId;
   const activeSocketObj = mysockets.find(
-    (socketObj) =>
-      socketObj.transactionId === transactionId &&
-      socketObj.identifier === identifier &&
-      socketObj.url === messageContent[3].url
+    (socketObj) => socketObj.transactionId === transactionId
   );
 
   console.log("🚀 ~ handleStopTransaction ~ transactionId:", transactionId);
