@@ -23,3 +23,17 @@ exports.createWebSocketConfig = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
+exports.getWSconfigByCpoIdandCpId = async (req, res) => {
+  try {
+    const {cpoId, cpId} = req.params
+    const wsConfigObj = await wsConfig.find({identifier:cpId, cpoIdentifier:cpoId})
+
+    res.status(200).json(wsConfigObj)
+    
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+    
+  }
+}

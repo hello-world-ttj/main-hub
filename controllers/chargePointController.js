@@ -1,5 +1,8 @@
 const chargePoint = require("../models/chargePoint");
 const ocppLogs = require("../models/ocppLogs");
+const sellers = require('../models/seller')
+const auctionList = require("../models/auctionListItem")
+
 
 exports.addChargePoint = async (req, res) => {
   try {
@@ -38,6 +41,34 @@ exports.getChargePoint = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+exports.getChargePointsBySellerId = async (req, res) => {
+  try {
+    const {sellerId} = req.params;
+    if (!sellerId) {
+      res.status(400).json({ error: "CPID not provided" });
+    }
+    const cps = await chargePoint.find({sellerId});
+    res.status(200).json(cps)
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
+exports. publishChargingPoint = async (req, res) => {
+  try{
+    const {cpId} = req.params;
+    console.log(cpId)
+    const auctionObj = req.body;
+    const cp = await chargePoint.findOneAndUpdate({_id: cpId}, {published:true})
+    console.log(cp)
+    await auctionList.create(auctionObj);
+    res.status(200).json({"message": "Published!"})    
+  }
+  catch(error){
+    res.status(500).json({ error: error.message });
+  }
+}
 
 exports.saveOCPPLogs = async (identity, messageType, payload, source) => {
   try {

@@ -4,6 +4,7 @@ const wsConfigSchema = mongoose.Schema(
   {
     identifier: { type: String, required: true },
     url: { type: String, required: true },
+    cpoIdentifier: {type:String, required:true}
   },
   { timestamps: true }
 );

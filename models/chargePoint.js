@@ -18,6 +18,9 @@ const cpSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    model : {
+      type:String
+    },
     type: {
       type: String,
       required: true,
@@ -43,6 +46,10 @@ const cpSchema = mongoose.Schema(
       type: Number,
       default: 0,
     },
+    totalUnits: {
+      type:Number,
+      default:0
+    },
     points: {
       type: Number,
       default: 0,
@@ -51,8 +58,17 @@ const cpSchema = mongoose.Schema(
       type: Number,
       default: 0,
     },
+    sellerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "seller"
+    },
+    published:{
+      type:Boolean,
+      required:true,
+      default:false
+    }
   },
-  { timestamps: true }
+  { timestamps: true } 
 );
 
 module.exports = mongoose.model("chargePoint", cpSchema);
