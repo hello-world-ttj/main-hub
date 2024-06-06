@@ -60,12 +60,39 @@ const handleExternalMessage = async (identifier, url, message) => {
         .find((ws) => ws.url === url && ws.socket.readyState === WebSocket.OPEN)
         .socket,
     });
+  } else if (messageParts[2] === "RemoteStopTransaction") {
+    handleRemoteStopTransaction(messageParts, identifier);
   }
 
   console.log(
     `Received from external WebSocket server (${identifier}, ${url}): ${message}`
   );
   broadcastMessage(identifier, message);
+};
+
+const handleRemoteStopTransaction = (messageParts, identifier) => {
+  const transactionId = messageParts[3].transactionId;
+  const activeSocketObj = mysockets.find(
+    (socketObj) =>
+      socketObj.transactionId === transactionId &&
+      socketObj.identifier === identifier
+  );
+
+  console.log(
+    "🚀 ~ handleRemoteStopTransaction ~ transactionId:",
+    transactionId
+  );
+  console.log(
+    "🚀 ~ handleRemoteStopTransaction ~ activeSocketObj:",
+    activeSocketObj
+  );
+
+  if (activeSocketObj) {
+    activeSocketObj.socket.send(JSON.stringify(messageParts), handleError);
+    mysockets = mysockets.filter(
+      (socketObj) => socketObj.transactionId !== transactionId
+    );
+  }
 };
 
 const broadcastMessage = (identifier, message) => {
@@ -93,15 +120,16 @@ const handleClientMessage = async (ws, message) => {
 
   await saveOCPPLogs(ws.identifier, messageType, messageContent[3], "CP");
 
+  console.log("🚀 ~ handleClientMessage ~ messageType:", messageType);
   switch (messageType) {
     case "StartTransaction":
-      handleStartTransaction(messageContent);
+      handleStartTransaction(messageContent, ws.identifier);
       break;
     case "MeterValues":
-      handleMeterValues(messageContent);
+      handleMeterValues(messageContent, ws.identifier);
       break;
     case "StopTransaction":
-      handleStopTransaction(messageContent);
+      handleStopTransaction(messageContent, ws.identifier);
       break;
     default:
       forwardMessageToExternal(ws.identifier, message);
@@ -109,13 +137,22 @@ const handleClientMessage = async (ws, message) => {
   }
 };
 
-const handleStartTransaction = (messageContent) => {
+const handleStartTransaction = (messageContent, identifier) => {
   const transactionDetails = messageContent[3];
   const activeSocketObj = mysockets.find(
     (socketObj) =>
       socketObj.details.connectorId === transactionDetails.connectorId &&
       socketObj.details.idTag === transactionDetails.idTag &&
-      socketObj.identifier === transactionDetails.identifier // Ensure matching identifier
+      socketObj.identifier === identifier
+  );
+
+  console.log(
+    "🚀 ~ handleStartTransaction ~ transactionDetails:",
+    transactionDetails
+  );
+  console.log(
+    "🚀 ~ handleStartTransaction ~ activeSocketObj:",
+    activeSocketObj
   );
 
   if (activeSocketObj) {
@@ -123,13 +160,16 @@ const handleStartTransaction = (messageContent) => {
   }
 };
 
-const handleMeterValues = (messageContent) => {
+const handleMeterValues = (messageContent, identifier) => {
   const meterValue = messageContent[3];
   const activeSocketObj = mysockets.find(
     (socketObj) =>
       socketObj.details.connectorId === meterValue.connectorId &&
-      socketObj.identifier === meterValue.identifier // Ensure matching identifier
+      socketObj.identifier === identifier
   );
+
+  console.log("🚀 ~ handleMeterValues ~ meterValue:", meterValue);
+  console.log("🚀 ~ handleMeterValues ~ activeSocketObj:", activeSocketObj);
 
   if (activeSocketObj) {
     activeSocketObj.transactionId = meterValue.transactionId;
@@ -137,11 +177,16 @@ const handleMeterValues = (messageContent) => {
   }
 };
 
-const handleStopTransaction = (messageContent) => {
+const handleStopTransaction = (messageContent, identifier) => {
   const transactionId = messageContent[3].transactionId;
   const activeSocketObj = mysockets.find(
-    (socketObj) => socketObj.transactionId === transactionId
+    (socketObj) =>
+      socketObj.transactionId === transactionId &&
+      socketObj.identifier === identifier
   );
+
+  console.log("🚀 ~ handleStopTransaction ~ transactionId:", transactionId);
+  console.log("🚀 ~ handleStopTransaction ~ activeSocketObj:", activeSocketObj);
 
   if (activeSocketObj) {
     activeSocketObj.socket.send(JSON.stringify(messageContent), handleError);
