@@ -22,7 +22,7 @@ const {
   endAuction
 } = require("../controllers/auctionListController")
 
-const {getBidDetailsById, removeBidder, getBidsByCpoId, makeADeal, confirmDeal} = require("../controllers/bidContoller")
+const {getBidDetailsById, removeBidder, getBidsByCpoId, makeADeal, confirmDeal, updateBid} = require("../controllers/bidContoller")
 
 const {getCpOperatorById, getCposByCpId} =require("../controllers/cpOperatorController")
 
@@ -43,6 +43,8 @@ router.get("/auction/list", getAuctionList);
 router.get("/auction/:auctionId", getAuctionById);
 router.get("/bid/:bidId", getBidDetailsById);
 router.get("/bid/remove/:bidId", removeBidder);
+router.patch("/bid/update/:bidId", updateBid);
+
 router.get("/cpo/bids/:cpoId", getBidsByCpoId);
 router.get("/cpo/profile/:cpoId", getCpOperatorById);
 router.get("/cpo/:cpId", getCposByCpId);

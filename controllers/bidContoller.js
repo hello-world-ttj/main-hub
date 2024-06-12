@@ -69,3 +69,16 @@ exports.confirmDeal = async (req, res) => {
 
     }
 }
+
+exports.updateBid = async (req, res) => {
+    
+    const {bidId} = req.params;
+    const bidObj = req.body;
+    try {
+        const data = await bidItem.findByIdAndUpdate(bidId, bidObj)
+        res.status(200).json(data)
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+
+    }
+}

@@ -28,7 +28,9 @@ const bidItemSchema = mongoose.Schema({
     makeAdealDuration: {
         type:Number
     }
-})
+}, 
+{ timestamps: true }
+)
 
 
 module.exports = mongoose.model("bidItem", bidItemSchema)
