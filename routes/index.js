@@ -17,3 +17,4 @@ router.route("/charge-point").post(addChargePoint).get(getAllCps);
 router.get("/charge-point/:CPID", getChargePoint);
 router.get("/ocpp-logs", getOcppLogs);
 module.exports = router;
+
